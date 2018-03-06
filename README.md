@@ -4,8 +4,7 @@ Protein Complexes Identification Based on GO Attributed Network Embedding
 
 Installation
 ------------
-####Requirements
-        numpy
+Requirements: numpy
 
 Input and Output
 ------------
