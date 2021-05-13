@@ -25,6 +25,7 @@ def merge_cliques(new_cliques_set, matrix):
     seed_clique = []
 
     while (True):
+        print(len(new_cliques_set))
         temp_cliques_set = []
         if len(new_cliques_set) >= 2:
             seed_clique.append(new_cliques_set[0])
@@ -92,6 +93,7 @@ protein_out_file="protein.temp"  #for each protein a index
 cliques_file="cliques"
 ppi_pair_file="ppi.pair"
 ppi_matrix_file="ppi.matrix"
+dataset = 'gavin'
 
 if __name__ == "__main__":
 
@@ -99,7 +101,7 @@ if __name__ == "__main__":
 
     ###########input PPI data############
     #f = open(options.PPI_file, "r")
-    f = open("dataset/biogrid_attr_sim96.txt", "r")
+    f = open("plots/%s/TENE/%s_sim.txt" % (dataset, dataset), "r")
     f_protein_out = open(protein_out_file, "w")
     Dic_map = {}
     index = 0
@@ -137,7 +139,7 @@ if __name__ == "__main__":
 
     ######dic_map to map_dic###########
     Map_dic = {}
-    for key in Dic_map.keys():
+    for key in list(Dic_map.keys()):
         Map_dic[Dic_map[key]] = key
 
     #print Map_dic
@@ -155,10 +157,10 @@ if __name__ == "__main__":
     #print Adj_Matrix.shape[0]
 
     os.system(
-        "ConvertPPI.exe " + "dataset/biogrid.txt" + " " + protein_out_file + " " + ppi_pair_file + " " + ppi_matrix_file)
+        "ConvertPPI.exe " + "dataset/%s.txt" % dataset + " " + protein_out_file + " " + ppi_pair_file + " " + ppi_matrix_file)
     os.system(
         "Mining_Cliques.exe " + ppi_matrix_file + " " + "1" + " " + "3" + " " + str(Node_count) + " " + cliques_file)
-
+    print('writing cliques...')
     cliques_set = []
     f = open(cliques_file, "r")
     for line in f:
@@ -177,7 +179,6 @@ if __name__ == "__main__":
         instance.append(clique_score)
     avg_clique_score /= len(cliques_set)
     cliques_set.sort(key=f_key, reverse=True)
-    #print cliques_set
 
     new_cliques_set = []
     for i in range(len(cliques_set)):
@@ -185,17 +186,13 @@ if __name__ == "__main__":
         for j in range(len(cliques_set[i]) - 1):
             temp_set.add(cliques_set[i][j])
         new_cliques_set.append(temp_set)
-    #print new_cliques_set
-    #print len(new_cliques_set)
-
+    print('merging cliques...')
     seed_clique = merge_cliques(new_cliques_set, Adj_Matrix)
-    #print seed_clique
-    #print len(seed_clique)
-
+    print('expanding clusters...')
     expand_thres = 0.3
     complex_set = expand_cluster(seed_clique, All_node_index, Adj_Matrix, expand_thres)
     print("##########output predicted complexes##########\n")
-    final_file = open("result/final_biogrid_attr_output", "w")
+    final_file = open("result/final_%s_attr_output" % dataset, "w")
 
     for i in range(len(complex_set)):
 
@@ -207,6 +204,6 @@ if __name__ == "__main__":
         final_file.write(line)
     final_file.close()
 
-    print len(complex_set)
+    print(len(complex_set))
 
     print("##########COAN completes############")

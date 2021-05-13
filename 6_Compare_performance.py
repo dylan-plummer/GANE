@@ -3,7 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 #calculate the overlap number of the complex i get with the known conplex
 #file=open("dip_complex_degree.txt")
-str="result/final_dip_attr_output"
+dataset = 'gavin'
+str="result/final_%s_attr_output" % dataset
 file=open(str)
 file1=open("dataset/Form_CYC20083.txt")
 #file1=open("dataset/golden_standard.txt")
@@ -45,8 +46,8 @@ for i in predicted_complex:
             overlapscore = score
     if (overlapscore > 0.2):
             number = number + 1
-            print row,
-            print " ",
+            print(row, end=' ')
+            print(" ", end=' ')
     row=row+1
 #recall
 for i in reference_complex:
@@ -87,8 +88,8 @@ for i in predicted_complex:
             max=len(overlap)
     T_sum2=T_sum2+max
 
-print "\n"
-print number,predicted_num# matched predicted complex number
+print("\n")
+print(number,predicted_num)# matched predicted complex number
 #print c_number,reference_num# matched reference complex number
 precision=float(number/float(predicted_num))
 recall=float(c_number/float(reference_num))
@@ -96,21 +97,17 @@ F1=float((2*precision*recall)/(precision+recall))
 Sn=float(T_sum1)/float(N_sum)
 PPV=float(T_sum2)/float(T_sum)
 Acc=pow(float(Sn*PPV),0.5)
-print "precision",
-print precision
-print "recall",
-print recall
-print "F1",
-print F1
-print "Sn",
-print Sn
-print "PPV",
-print PPV
-print "Acc",
-print Acc
+print("precision", end=' ')
+print(precision)
+print("recall", end=' ')
+print(recall)
+print("F1", end=' ')
+print(F1)
+print("Sn", end=' ')
+print(Sn)
+print("PPV", end=' ')
+print(PPV)
+print("Acc", end=' ')
+print(Acc)
 file.close()
 file1.close()
-
-#nx.draw(g)
-#plt.savefig("wuxiangtu.png")
-#plt.show()

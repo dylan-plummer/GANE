@@ -8,7 +8,7 @@ The input files must contain the reference and the predicted complexes, one
 complex per line.
 """
 
-from __future__ import division
+
 
 import optparse
 import sys
@@ -104,7 +104,7 @@ def maximum_matching_ratio(reference, predicted, score_threshold=0.2):
 
             scores[id1, id2+n] = score
 
-    input = [(v1, v2, w) for (v1, v2), w in scores.iteritems()]
+    input = [(v1, v2, w) for (v1, v2), w in scores.items()]
     mates = maxWeightMatching(input)
     score = sum(scores[i, mate] for i, mate in enumerate(mates) if i < mate)
     return score / n
@@ -152,7 +152,7 @@ class MatchApplication(object):
     def log(self, msg):
         if self.options.quiet:
             return
-        print >>sys.stderr, msg
+        print(msg, file=sys.stderr)
 
     def read_complexes(self, fname, known_proteins=None, strictness=0.5,
             min_size=3, max_size=100):
@@ -212,7 +212,7 @@ class MatchApplication(object):
                 continue
 
             result = self.measures[measure](reference_complexes, predicted_complexes)
-            print "%s = %.4f" % (measure, result)
+            print("%s = %.4f" % (measure, result))
 
         return 0
 
