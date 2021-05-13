@@ -2,11 +2,13 @@ import os
 import numpy as np
 import pandas as pd
 import networkx as nx
+import seaborn as sns
 import matplotlib.pyplot as plt
 
 from itertools import combinations
 from scipy.sparse import coo_matrix
 from scipy.spatial.distance import pdist, squareform
+from sklearn.manifold import TSNE
 from sklearn.metrics import normalized_mutual_info_score, adjusted_rand_score
 from karateclub import NNSED, SymmNMF, DANMF
 from karateclub import ASNE, FeatherNode, SINE, BANE, AE, MUSAE, TENE, TADW, FSCNMF
@@ -20,7 +22,8 @@ os.makedirs(out_dir, exist_ok=True)
 A = np.loadtxt('matrix/Attribute_%s.txt' % dataset)
 M = np.loadtxt('matrix/Network_%s.txt' % dataset)
 
-protein_df = pd.read_csv('dataset/%s_attr_vector.txt' % dataset, sep=' ', header=None)
+protein_df = pd.read_csv('dataset/%s_attr_vector.txt' % dataset, sep='\s+| |\t', header=None)
+print(protein_df)
 protein_list = np.array(protein_df.iloc[:, 0].values)
 print(protein_list)
 print(len(protein_list))
@@ -33,6 +36,10 @@ comb = np.vstack([protein_list[R], protein_list[C], edge_mask])  # this plus a c
 
 G = nx.convert_matrix.from_numpy_array(M)  # create graph from adjacency matrix
 print(len(G.edges()))
+
+degrees = []
+for (_, d) in G.degree():
+    degrees.append(d)
 
 # plot degree distribution
 degree_sequence = sorted([d for n, d in G.degree()], reverse=True)
@@ -80,9 +87,17 @@ for method_name, method, community_detector in zip(['TENE', 'TADW', 'FSCNMF', 'A
     out_df.to_csv(os.path.join(out_dir, method_name, '%s_sim.txt' % dataset), sep=' ', header=False, index=False)
 
     results_df = pd.DataFrame.copy(protein_df, deep=True)
-    results_df.columns = ['protein'] + list(np.arange(0, len(results_df.columns) - 1))
-    embeddings_series = pd.Series(z.tolist())
-    results_df['embedding'] = embeddings_series
+    columns_names = ['protein'] + list(np.arange(0, len(results_df.columns) - 1))
+    results_df.columns = [str(v) for v in columns_names]
+    print(results_df.columns)
+    z_tsne = TSNE(2).fit_transform(z)
+    results_df['tsne_1'] = z_tsne[..., 0]
+    results_df['tsne_2'] = z_tsne[..., 1]
+    results_df['degree'] = degrees
+    sns.scatterplot(data=results_df, x='tsne_1', y='tsne_2', hue='1', legend='brief', palette='Spectral')
+    plt.title(method_name)
+    plt.savefig(os.path.join(out_dir, method_name, '%s_tsne.png' % dataset))
+    plt.close()
     print(results_df)
     results_df.to_csv(os.path.join(out_dir, method_name, '%s_embeddings.csv' % dataset))
 
