@@ -7,17 +7,16 @@ import matplotlib.pyplot as plt
 
 from itertools import combinations
 from scipy.sparse import coo_matrix
-from scipy.spatial.distance import pdist, squareform
+from scipy.spatial.distance import pdist
 from sklearn.manifold import TSNE
-from sklearn.metrics import normalized_mutual_info_score, adjusted_rand_score
-from karateclub import NNSED, SymmNMF, DANMF
-from karateclub import ASNE, FeatherNode, SINE, BANE, AE, MUSAE, TENE, TADW, FSCNMF
+from karateclub import DANMF
+from karateclub import ASNE, SINE, BANE, AE, MUSAE, TENE, TADW, FSCNMF
 
 from cluster_core_utils import *
 
-#dataset = 'collins'
-dataset = 'krogan14k'
-n_exp = 5
+#dataset = 'biogrid'
+dataset = 'dip'
+n_exp = 1
 out_dir = 'plots/%s' % dataset
 os.makedirs(out_dir, exist_ok=True)
 
@@ -54,7 +53,7 @@ plt.savefig(os.path.join(out_dir, 'degree_distribution.png'))
 plt.close()
 
 # get attribute matrix and convert to sparse format for attributed embedding methods
-plt.matshow(nx.normalized_laplacian_matrix(G).A, cmap='prism')
+plt.matshow(A, cmap='jet')
 plt.savefig(os.path.join(out_dir, 'attribute_matrix.png'))
 plt.close()
 attr_m = coo_matrix(A)
@@ -67,10 +66,7 @@ for method_name, method, community_detector in zip(['TENE', 'TADW', 'FSCNMF', 'A
     for exp_i in range(n_exp):
         print('Testing', method_name, exp_i)
         os.makedirs(os.path.join(out_dir, method_name), exist_ok=True)
-        try:
-            model = method(workers=20)
-        except TypeError:
-            model = method()
+        model = method()
         model.allow_disjoint = True
         community_df = pd.DataFrame()
         try:
@@ -83,10 +79,10 @@ for method_name, method, community_detector in zip(['TENE', 'TADW', 'FSCNMF', 'A
         except AssertionError as e:
             print(e)
             continue
-        dist = pdist(z, metric='cosine')
+        dist = pdist(z, metric='cosine')  # compute pairwise similarity between every pair of nodes
         out_arr = np.vstack([comb, dist]).T
         out_df = pd.DataFrame(data=out_arr, columns=['p1', 'p2', 'edge', 'sim'])
-        out_df = out_df.loc[out_df['edge'], ['p1', 'p2', 'sim']]
+        out_df = out_df.loc[out_df['edge'], ['p1', 'p2', 'sim']]  # filter out rows where proteins did not share an edge
         out_df.to_csv(os.path.join(out_dir, method_name, '%s_sim.txt' % dataset), sep=' ', header=False, index=False)
 
         if exp_i == 0:
@@ -120,12 +116,8 @@ df['hue'] = df['method'].apply(lambda m: method_map[m])
 print(df)
 
 for key in ['precision', 'recall', 'F1', 'Sn', 'PPV', 'Acc']:
-    g = sns.barplot(data=df, x='method', y=key, order=df.sort_values(by=key).method, hue='hue', dodge=False)
+    g = sns.barplot(data=df, x='method', y=key, order=df.sort_values(by=key).method)
     g.legend_.remove()
     plt.ylim(0, 1)
     plt.savefig(os.path.join(out_dir, '%s.png' % (key)))
     plt.close()
-
-
-
-

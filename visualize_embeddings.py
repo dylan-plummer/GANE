@@ -7,11 +7,15 @@ import matplotlib.pyplot as plt
 
 plt.style.use('seaborn-dark')
 
+dataset = 'dip'
+
 for method in ['TENE', 'TADW', 'FSCNMF', 'ASNE', 'DANMF', 'SINE', 'BANE', 'AE', 'MUSAE']:
-    df = pd.read_csv('plots/gavin/%s/gavin_embeddings.csv' % method)
+    df = pd.read_csv('plots/%s/%s/%s_embeddings.csv' % (dataset, method, dataset))
     print(df)
     #df['embedding'] = df['embedding'].apply(lambda s: [float(v) for v in s])
     n_go = len(df.columns) - 3
+    if n_go > 64:
+        n_go = 64
     nrows = int(math.sqrt(n_go))
     ncols = int(n_go / nrows)
 
@@ -33,5 +37,5 @@ for method in ['TENE', 'TADW', 'FSCNMF', 'ASNE', 'DANMF', 'SINE', 'BANE', 'AE', 
 
     #fig.subplots_adjust(wspace=0.01, hspace=0.01)
     fig.tight_layout()
-    plt.savefig('plots/%s.png' % method)
+    plt.savefig('plots/%s/%s.png' % (dataset, method))
     plt.close()
