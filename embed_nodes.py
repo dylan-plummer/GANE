@@ -15,15 +15,19 @@ from karateclub import ASNE, SINE, BANE, AE, MUSAE, TENE, TADW, FSCNMF
 from cluster_core_utils import *
 
 #dataset = 'biogrid'
-dataset = 'dip'
+dset_file = 'gavin'
+dataset = dset_file
 n_exp = 1
+use_go = True
+if use_go:
+    dataset += '_GO'
 out_dir = 'plots/%s' % dataset
 os.makedirs(out_dir, exist_ok=True)
 
-A = np.loadtxt('matrix/Attribute_%s.txt' % dataset)
-M = np.loadtxt('matrix/Network_%s.txt' % dataset)
+A = np.loadtxt('matrix/Attribute_%s.txt' % dset_file)
+M = np.loadtxt('matrix/Network_%s.txt' % dset_file)
 
-protein_df = pd.read_csv('dataset/%s_attr_vector.txt' % dataset, sep='\s+| |\t', header=None)
+protein_df = pd.read_csv('dataset/%s_attr_vector.txt' % (dset_file), sep='\s+| |\t', header=None)
 print(protein_df)
 protein_list = np.array(protein_df.iloc[:, 0].values)
 print(protein_list)
@@ -52,11 +56,14 @@ plt.xlabel("rank")
 plt.savefig(os.path.join(out_dir, 'degree_distribution.png'))
 plt.close()
 
-# get attribute matrix and convert to sparse format for attributed embedding methods
-plt.matshow(A, cmap='jet')
-plt.savefig(os.path.join(out_dir, 'attribute_matrix.png'))
+plt.matshow(nx.normalized_laplacian_matrix(G).A, cmap='nipy_spectral')
+plt.savefig(os.path.join(out_dir, 'laplacian_norm.png'))
 plt.close()
-attr_m = coo_matrix(A)
+# get attribute matrix and convert to sparse format for attributed embedding methods
+if use_go:
+    attr_m = coo_matrix(A)
+else:
+    attr_m = coo_matrix(np.zeros_like(A))
 
 # dict for storing results (will be converted to DataFrame)
 metrics = {'method': [], 'precision': [], 'recall': [], 'F1': [], 'Sn': [], 'PPV': [], 'Acc': []}
@@ -95,7 +102,7 @@ for method_name, method, community_detector in zip(['TENE', 'TADW', 'FSCNMF', 'A
             results_df['degree'] = degrees
             results_df.to_csv(os.path.join(out_dir, method_name, '%s_embeddings.csv' % dataset))
 
-        cluster(dataset, method_name)
+        cluster(dataset, dset_file, method_name)
         precision, recall, F1, Sn, PPV, Acc = eval(dataset)
         metrics['method'] += [method_name]
         metrics['precision'] += [precision]
@@ -121,3 +128,7 @@ for key in ['precision', 'recall', 'F1', 'Sn', 'PPV', 'Acc']:
     plt.ylim(0, 1)
     plt.savefig(os.path.join(out_dir, '%s.png' % (key)))
     plt.close()
+
+
+
+

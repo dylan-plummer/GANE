@@ -22,7 +22,6 @@ def merge_cliques(new_cliques_set, matrix):
     seed_clique = []
 
     while (True):
-        print(len(new_cliques_set))
         temp_cliques_set = []
         if len(new_cliques_set) >= 2:
             seed_clique.append(new_cliques_set[0])
@@ -86,7 +85,7 @@ def expand_cluster(seed_clique, all_protein_set, matrix, expand_thres):
     return (complex_set)
 
 
-def cluster(dataset, method, protein_out_file='protein.temp', cliques_file="cliques", ppi_pair_file="ppi.pair", ppi_matrix_file="ppi.matrix"):
+def cluster(dataset, dset_file, method, protein_out_file='protein.temp', cliques_file="cliques", ppi_pair_file="ppi.pair", ppi_matrix_file="ppi.matrix"):
     f = open("plots/%s/%s/%s_sim.txt" % (dataset, method, dataset), "r")
     f_protein_out = open(protein_out_file, "w")
     Dic_map = {}
@@ -142,7 +141,7 @@ def cluster(dataset, method, protein_out_file='protein.temp', cliques_file="cliq
     # print Adj_Matrix.shape[0]
 
     os.system(
-        "ConvertPPI.exe " + "dataset/%s.txt" % dataset + " " + protein_out_file + " " + ppi_pair_file + " " + ppi_matrix_file)
+        "ConvertPPI.exe " + "dataset/%s.txt" % dset_file + " " + protein_out_file + " " + ppi_pair_file + " " + ppi_matrix_file)
     os.system(
         "Mining_Cliques.exe " + ppi_matrix_file + " " + "1" + " " + "3" + " " + str(Node_count) + " " + cliques_file)
     cliques_set = []
@@ -188,26 +187,16 @@ def cluster(dataset, method, protein_out_file='protein.temp', cliques_file="cliq
         final_file.write(line)
     final_file.close()
 
-    #print(len(complex_set))
-
-    #print("##########COAN completes############")
-
 
 def eval(dataset):
     str = "result/final_%s_attr_output" % dataset
     file = open(str)
-    #file1 = open("dataset/Form_CYC20083.txt")
-    file1=open("dataset/golden_standard.txt")
+    file1 = open("dataset/Form_CYC20083.txt")
+    #file1=open("dataset/golden_standard.txt")
 
     # g=nx.Graph()
-    predicted_num = len(file.readlines())
-    reference_num = len(file1.readlines())
-    file.close()
-    file1.close()
-
-    file = open(str)
-    #file1 = open("dataset/Form_CYC20083.txt")
-    file1=open("dataset/golden_standard.txt")
+    #predicted_num = len(file.readlines())
+    #reference_num = len(file1.readlines())
     reference_complex = []
     for j in file1:
         j = j.rstrip()
@@ -221,6 +210,9 @@ def eval(dataset):
         i = i.rstrip('\n')
         node_list = i.split(' ')
         predicted_complex.append(node_list)
+
+    predicted_num = len(predicted_complex)
+    reference_num = len(reference_complex)
     # precision
     number = 0
     c_number = 0
