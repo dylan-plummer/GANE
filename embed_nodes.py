@@ -14,7 +14,7 @@ from karateclub import ASNE, SINE, BANE, AE, MUSAE, TENE, TADW, FSCNMF
 from cluster_core_utils import *
 
 #dataset = 'biogrid'
-dset_file = 'gavin'
+dset_file = 'dip'
 dataset = dset_file
 n_exp = 1
 use_go = False
@@ -65,16 +65,22 @@ plt.close()
 metrics = {'method': [], 'precision': [], 'recall': [], 'F1': [], 'Sn': [], 'PPV': [], 'Acc': [], 'use_GO': []}
 for method_name, method in zip(['TENE', 'TADW', 'FSCNMF', 'ASNE', 'SINE', 'BANE', 'AE', 'MUSAE'],  # the name of the embedding/community detection method
                                 [TENE, TADW, FSCNMF, ASNE, SINE, BANE, AE, MUSAE]):  # the model class
-    for exp_i in range(n_exp):
-        for use_go in [True, False]:
-            if use_go:
-                attr_m = coo_matrix(A)
-                dataset = dset_file + '_GO'
-            else:
-                attr_m = coo_matrix(np.ones_like(A))
-                dataset = dset_file
-            out_dir = 'plots/%s' % dataset
-            os.makedirs(out_dir, exist_ok=True)
+    for use_go in [True, False]:
+        if use_go:
+            attr_m = coo_matrix(A)
+            dataset = dset_file + '_GO'
+        else:
+            attr_m = coo_matrix(np.ones_like(A))
+            dataset = dset_file
+        out_dir = 'plots/%s' % dataset
+        os.makedirs(out_dir, exist_ok=True)
+        try:
+            if '%s_sim.txt' % dataset in os.listdir(os.path.join(out_dir, method_name)):
+                print(method_name, 'Already ran experiment, delete results to run again...')
+                continue
+        except FileNotFoundError:
+            pass
+        for exp_i in range(n_exp):
 
             print('Testing', method_name, exp_i, use_go)
             os.makedirs(os.path.join(out_dir, method_name), exist_ok=True)
@@ -125,7 +131,7 @@ df['hue'] = df['method'].apply(lambda m: method_map[m])
 print(df)
 
 for key in ['precision', 'recall', 'F1', 'Sn', 'PPV', 'Acc']:
-    g = sns.barplot(data=df, x='method', y=key, order=df.sort_values(by=key).method, hue='use_GO')
+    g = sns.barplot(data=df, x='method', y=key, order=df.drop_duplicates(subset='method').sort_values(by=key).method, hue='use_GO')
     plt.ylim(0, 1)
     plt.savefig(os.path.join(out_dir, '%s.png' % (key)))
     plt.close()
